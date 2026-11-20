@@ -1,0 +1,17 @@
+# Local build output
+/b612/
+/cmake-build-*/
+/build/
+/build-*/
+
+# Local IDE and verification files
+/.idea/
+/.verification/
+*.user
+*.user.*
+*.qmlproject.qtds
+
+# Local credentials
+.env
+.env.*
+!.env.example

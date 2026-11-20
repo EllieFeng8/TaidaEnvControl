@@ -1,0 +1,29 @@
+<RCC>
+    <qresource>
+        <file>qtquickcontrols2.conf</file>
+        <file>TaidaEnvControl.qmlproject</file>
+        <file>TaidaEnvControl/Constants.qml</file>
+        <file>TaidaEnvControl/EventListModel.qml</file>
+        <file>TaidaEnvControl/EventListSimulator.qml</file>
+        <file>TaidaEnvControl/qmldir</file>
+        <file>TaidaEnvControlContent/App.qml</file>
+        <file>TaidaEnvControlContent/components/ActionButton.qml</file>
+        <file>TaidaEnvControlContent/components/BreathingBorder.qml</file>
+        <file>TaidaEnvControlContent/components/ControlToggle.qml</file>
+        <file>TaidaEnvControlContent/components/LeakIndicator.qml</file>
+        <file>TaidaEnvControlContent/components/Panel.qml</file>
+        <file>TaidaEnvControlContent/components/RestartDialog.qml</file>
+        <file>TaidaEnvControlContent/components/SetpointInput.qml</file>
+        <file>TaidaEnvControlContent/components/StatusLight.qml</file>
+        <file>TaidaEnvControlContent/components/Theme.qml</file>
+        <file>TaidaEnvControlContent/components/ValueReadout.qml</file>
+        <file>TaidaEnvControlContent/Dashboard.qml</file>
+        <file>TaidaEnvControlContent/modules/DashboardHeader.qml</file>
+        <file>TaidaEnvControlContent/modules/EmergencyPanel.qml</file>
+        <file>TaidaEnvControlContent/modules/LeakDetectionPanel.qml</file>
+        <file>TaidaEnvControlContent/modules/ResetPanel.qml</file>
+        <file>TaidaEnvControlContent/modules/TemperaturePanel.qml</file>
+        <file>TaidaEnvControlContent/modules/ValvePanel.qml</file>
+        <file>TaidaEnvControlContent/Screen01.ui.qml</file>
+    </qresource>
+</RCC>
