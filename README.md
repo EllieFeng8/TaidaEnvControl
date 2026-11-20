@@ -1,6 +1,6 @@
 # 台達西側治具 QML 畫面
 
-以參考圖片的 1100 × 770 為基準，視窗縮放時等比例置中顯示。
+程式啟動時直接進入全螢幕，按 F11 可切換全螢幕與一般視窗。以參考圖片的 1100 × 770 為基準，依視窗大小等比例置中顯示。
 在 Qt Design Studio 開啟 `TaidaEnvControl.qmlproject` 查看畫面；完整操作請建置並執行 C++ 應用程式，由 `App/main.cpp` 注入 `TC` proxy。單獨以 qml 執行器執行 `App.qml` 不會建立 C++ proxy。
 
 ## 檔案配置
