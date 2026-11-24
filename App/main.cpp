@@ -5,7 +5,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
-#include "../Core/TaidaEnvControlProxy.h"
+#include "../Core/core.h"
 
 #include "autogen/environment.h"
 
@@ -14,9 +14,10 @@ int main(int argc, char *argv[])
     set_qt_environment();
     QApplication app(argc, argv);
 
-    TaidaEnvControlProxy proxy;
+    Core::instance().init();
+
     QQmlApplicationEngine engine;
-    engine.rootContext()->setContextProperty("TC", &proxy);
+    engine.rootContext()->setContextProperty("TC", Core::instance().m_proxy);
     const QUrl url(mainQmlFile);
     QObject::connect(
                 &engine, &QQmlApplicationEngine::objectCreated, &app,
