@@ -1,12 +1,22 @@
 #pragma once
 
 #include <QObject>
+#include <QDateTime>
+#include <QVariantList>
 
 // UI 共用資料入口，QML 以 TC 存取，例如 TC.outPv、TC.outSv。
 // READ 使用 get、WRITE 使用 set、NOTIFY 使用 Changed；只有值改變才通知。
 class TaidaEnvControlProxy : public QObject
 {
     Q_OBJECT
+
+    // 目前異常，依發生時間由新至舊排列；解除後自動移除。
+    Q_PROPERTY(QVariantList activeAlarms READ getActiveAlarms NOTIFY activeAlarmsChanged)
+    Q_PROPERTY(int activeAlarmCount READ getActiveAlarmCount NOTIFY activeAlarmsChanged)
+    Q_PROPERTY(QVariantList alarmHistory READ getAlarmHistory NOTIFY alarmHistoryChanged)
+    // 異常跑馬燈顯示開關，預設 true；仍須有未解除異常才顯示。
+    // 只控制內容顯示，不影響異常紀錄或設備狀態；內容沿用 activeAlarms。
+    Q_PROPERTY(bool alarmMarqueeEnabled READ getAlarmMarqueeEnabled WRITE setAlarmMarqueeEnabled NOTIFY alarmMarqueeEnabledChanged)
 
     // 出水閥目前開度（%）。
     Q_PROPERTY(double outPv READ getOutPv WRITE setOutPv NOTIFY outPvChanged)
@@ -31,6 +41,13 @@ class TaidaEnvControlProxy : public QObject
 
 public:
     explicit TaidaEnvControlProxy(QObject *parent = nullptr);
+
+    QVariantList getActiveAlarms() const;
+    int getActiveAlarmCount() const;
+    QVariantList getAlarmHistory() const { return m_alarmHistory; }
+    // QML 使用 TC.alarmMarqueeEnabled；C++ 使用此 getter/setter 控制顯示。
+    bool getAlarmMarqueeEnabled() const { return m_alarmMarqueeEnabled; }
+    void setAlarmMarqueeEnabled(bool value);
 
     // 出水閥目前開度（%）。
     double getOutPv() const { return m_outPv; }
@@ -77,6 +94,9 @@ public:
     Q_INVOKABLE void setReset();
 
 signals:
+    void alarmMarqueeEnabledChanged(); // 跑馬燈開關改變時通知，重複設定不通知。
+    void alarmHistoryChanged();
+    void activeAlarmsChanged();
     void outPvChanged();
     void inPvChanged();
     void outSvChanged();
@@ -90,6 +110,9 @@ signals:
     void resetRequested(); // 設備後端連接此訊號執行實際重啟。
 
 private:
+    void recordAlarm(bool active, const QString &code, const QString &source, const QString &message);
+    QVariantList m_alarmHistory;
+    bool m_alarmMarqueeEnabled = true;
     double m_outPv = 0;
     double m_inPv = 0;
     double m_outSv = 0;

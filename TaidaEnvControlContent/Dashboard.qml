@@ -4,6 +4,7 @@ import "modules"
 
 Item {
     id: root
+    property bool embedded: false
     // 所有設備狀態由 TC proxy 提供；此處保留唯讀名稱供畫面使用。
     readonly property real outletValue: TC.outPv
     readonly property real inletValue: TC.inPv
@@ -37,10 +38,10 @@ Item {
         anchors.centerIn: parent
         ColumnLayout {
             x: 62
-            y: 78
+            y: root.embedded ? 158 : 78
             width: 976
             spacing: 24
-            DashboardHeader { Layout.fillWidth: true; Layout.bottomMargin: 5 }
+            DashboardHeader { visible: !root.embedded; Layout.fillWidth: true; Layout.bottomMargin: 5 }
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 24

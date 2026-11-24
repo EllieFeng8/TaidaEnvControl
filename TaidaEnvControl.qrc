@@ -18,6 +18,8 @@
         <file>TaidaEnvControlContent/components/Theme.qml</file>
         <file>TaidaEnvControlContent/components/ValueReadout.qml</file>
         <file>TaidaEnvControlContent/Dashboard.qml</file>
+        <file>TaidaEnvControlContent/MainPage.qml</file>
+        <file>TaidaEnvControlContent/AlarmList.qml</file>
         <file>TaidaEnvControlContent/modules/DashboardHeader.qml</file>
         <file>TaidaEnvControlContent/modules/EmergencyPanel.qml</file>
         <file>TaidaEnvControlContent/modules/LeakDetectionPanel.qml</file>

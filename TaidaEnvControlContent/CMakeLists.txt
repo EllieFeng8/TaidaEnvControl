@@ -12,6 +12,8 @@ qt6_add_qml_module(TaidaEnvControlContent
         "App.qml"
         "Screen01.ui.qml"
         "Dashboard.qml"
+        "MainPage.qml"
+        "AlarmList.qml"
         "components/ControlToggle.qml"
         "components/SetpointInput.qml"
         "components/Theme.qml"

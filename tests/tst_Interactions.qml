@@ -17,10 +17,14 @@ Item {
     SignalSpy { id: svSpy; target: TC; signalName: "outSvChanged" }
     SignalSpy { id: proxyResetSpy; target: TC; signalName: "resetRequested" }
     Component { id: dashboardComponent; Dashboard { width: 1100; height: 770; z: 10 } }
+    Component { id: mainPageComponent; MainPage { width: 1100; height: 770; z: 10 } }
+    SignalSpy { id: alarmsSpy; target: TC; signalName: "activeAlarmsChanged" }
+    SignalSpy { id: marqueeSpy; target: TC; signalName: "alarmMarqueeEnabledChanged" }
 
     TestCase {
         name: "DashboardInteractions"
         when: windowShown
+        property int historyBaseline: 0
 
         function init() {
             TC.outPv = 0
@@ -31,9 +35,129 @@ Item {
             TC.leak1 = false
             TC.leak2 = false
             TC.leak3 = false
+            TC.alarmMarqueeEnabled = true
             TC.setReset()
             svSpy.clear()
             proxyResetSpy.clear()
+            alarmsSpy.clear()
+            marqueeSpy.clear()
+            historyBaseline = TC.alarmHistory.length
+        }
+
+        function test_activeAlarmLifecycle() {
+            compare(TC.activeAlarmCount, 0)
+            compare(TC.activeAlarms.length, 0)
+            TC.leak1 = true
+            compare(alarmsSpy.count, 1)
+            compare(TC.alarmHistory.length, historyBaseline + 1)
+            verify(TC.alarmHistory[0].active)
+            verify(isNaN(TC.alarmHistory[0].clearedAt.getTime()))
+            compare(TC.activeAlarmCount, 1)
+            compare(TC.activeAlarms[0].code, "LEAK_1")
+            const firstTime = TC.activeAlarms[0].occurredAt.getTime()
+            verify(!isNaN(firstTime))
+            TC.leak1 = true
+            compare(alarmsSpy.count, 1)
+            compare(TC.alarmHistory.length, historyBaseline + 1)
+            compare(TC.activeAlarms[0].occurredAt.getTime(), firstTime)
+            wait(10)
+            TC.emergency = true
+            TC.leak2 = true
+            TC.leak3 = true
+            compare(TC.activeAlarmCount, 4)
+            verify(TC.activeAlarms[0].occurredAt.getTime() >= firstTime)
+            compare(TC.activeAlarms[3].code, "LEAK_1")
+            TC.setReset()
+            compare(TC.activeAlarmCount, 4)
+            TC.leak1 = false
+            compare(TC.activeAlarmCount, 3)
+            compare(TC.alarmHistory.length, historyBaseline + 4)
+            verify(!TC.alarmHistory[3].active)
+            compare(TC.alarmHistory[3].occurredAt.getTime(), firstTime)
+            verify(TC.alarmHistory[3].clearedAt.getTime() >= firstTime)
+            const clearedTime = TC.alarmHistory[3].clearedAt.getTime()
+            TC.leak1 = false
+            compare(TC.alarmHistory[3].clearedAt.getTime(), clearedTime)
+            for (let i = 0; i < TC.activeAlarms.length; ++i)
+                verify(TC.activeAlarms[i].code !== "LEAK_1")
+            wait(10)
+            TC.leak1 = true
+            compare(TC.activeAlarms[0].code, "LEAK_1")
+            verify(TC.activeAlarms[0].occurredAt.getTime() > firstTime)
+            compare(TC.alarmHistory.length, historyBaseline + 5)
+            verify(TC.alarmHistory[0].active)
+            verify(!TC.alarmHistory[4].active)
+            compare(TC.alarmHistory[4].clearedAt.getTime(), clearedTime)
+        }
+
+        function test_alarmPageNavigationAndLiveUpdates() {
+            const page = createTemporaryObject(mainPageComponent, parent)
+            verify(page !== null)
+            compare(page.currentIndex, 0)
+            const outletInput = findObject(page, item => typeof item.submit === "function")
+            const field = findObject(outletInput, item => typeof item.selectAll === "function")
+            field.text = "27.5"
+            const tabs = findObject(page, item => item.objectName === "pageNavigation")
+            verify(waitForRendering(page))
+            const header = findObject(page, item => item.objectName === "pageHeader")
+            verify(tabs.y >= header.y + header.height)
+            compare(tabs.x, header.x)
+            mouseClick(tabs.itemAt(1))
+            compare(page.currentIndex, 1)
+            const list = findObject(page, item => item.objectName === "alarmHistoryList")
+            tryCompare(list, "count", historyBaseline)
+            TC.leak2 = true
+            tryCompare(list, "count", historyBaseline + 1)
+            compare(tabs.itemAt(1).text, "異常列表 (1)")
+            tryVerify(function() { return list.itemAtIndex(0) !== null })
+            verify(findObject(list.itemAtIndex(0), item => item.text === "偵測到管路漏水") !== null)
+            TC.leak2 = false
+            tryCompare(list, "count", historyBaseline + 1)
+            compare(tabs.itemAt(1).text, "異常列表 (0)")
+            verify(findObject(list.itemAtIndex(0), item => item.text === "已解除") !== null)
+            mouseClick(tabs.itemAt(0))
+            compare(page.currentIndex, 0)
+            compare(field.text, "27.5")
+            TC.leak3 = true
+            compare(tabs.itemAt(1).text, "異常列表 (1)")
+            mouseClick(tabs.itemAt(1))
+            tryCompare(list, "count", historyBaseline + 2)
+        }
+
+        function test_alarmMarqueeControlAndContent() {
+            const page = createTemporaryObject(mainPageComponent, parent)
+            const marquee = findObject(page, item => item.objectName === "alarmMarquee")
+            const text = findObject(page, item => item.objectName === "alarmMarqueeText")
+            const tabs = findObject(page, item => item.objectName === "pageNavigation")
+            verify(!marquee.visible)
+            verify(marquee.x > tabs.x + tabs.width)
+            TC.leak1 = true
+            verify(marquee.visible)
+            compare(marquee.text, "偵測到機房漏水")
+            verify(waitForRendering(page))
+            const startX = text.x
+            tryVerify(function() { return text.x < startX - 5 }, 1500)
+            TC.leak2 = true
+            verify(marquee.text.includes("偵測到機房漏水"))
+            verify(marquee.text.includes("偵測到管路漏水"))
+            TC.alarmMarqueeEnabled = false
+            verify(!marquee.visible)
+            compare(marqueeSpy.count, 1)
+            TC.alarmMarqueeEnabled = false
+            compare(marqueeSpy.count, 1)
+            const historyCount = TC.alarmHistory.length
+            compare(TC.activeAlarmCount, 2)
+            TC.leak1 = false
+            compare(marquee.text, "偵測到管路漏水")
+            TC.alarmMarqueeEnabled = true
+            verify(marquee.visible)
+            page.currentIndex = 1
+            verify(marquee.visible)
+            compare(TC.alarmHistory.length, historyCount)
+            TC.leak2 = false
+            verify(!marquee.visible)
+            compare(marquee.text, "")
+            compare(TC.alarmHistory.length, historyCount)
         }
 
         function test_proxyValidationAndNotifications() {
